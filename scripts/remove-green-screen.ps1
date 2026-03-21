@@ -16,7 +16,7 @@ Add-Type -AssemblyName System.Drawing
 
 $scriptRoot = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
 if ([string]::IsNullOrWhiteSpace($InputPath)) {
-  $primaryDefault = Join-Path $scriptRoot "..\\me_0.png"
+  $primaryDefault = Join-Path $scriptRoot "..\\assets\\_incoming\\characters\\player\\player-standing-source.png"
   $legacyDefault = Join-Path $scriptRoot "..\\grok-image-b7e09d46-ad53-4b28-98b8-e0d005131488.png"
   $InputPath = if (Test-Path $primaryDefault) { $primaryDefault } else { $legacyDefault }
 }

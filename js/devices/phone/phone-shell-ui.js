@@ -15,8 +15,9 @@ function createPhoneShellViewModel(targetState = state) {
   const jobsState = typeof syncJobsDomainState === "function"
     ? syncJobsDomainState(targetState)
     : {
-        scheduledShift: targetState?.nextDayShift || null,
-        applicationDoneToday: Boolean(targetState?.jobApplicationDoneToday),
+        ...(targetState?.jobs || {}),
+        scheduledShift: targetState?.jobs?.scheduledShift || null,
+        applicationDoneToday: Boolean(targetState?.jobs?.applicationDoneToday),
       };
   const unlocked = Boolean(targetState?.hasPhone);
   const canUseApps = typeof canUsePhoneApps === "function" ? canUsePhoneApps(targetState) : unlocked;
@@ -66,7 +67,7 @@ function createPhoneShellViewModel(targetState = state) {
   };
 }
 
-function applyPhoneShellUi(uiRefs, screenState) {
+function applyPhoneShellUiLegacyStatus(uiRefs, screenState) {
   if (!uiRefs?.phonePanel) {
     return;
   }
@@ -141,6 +142,97 @@ function applyPhoneShellUi(uiRefs, screenState) {
 
   if (uiRefs.phoneDayChip) {
     uiRefs.phoneDayChip.textContent = `DAY ${String(day).padStart(2, "0")}`;
+  }
+
+  uiRefs.phonePanel.querySelectorAll(".phone-app-btn[data-phone-app]").forEach((button) => {
+    const appId = button.dataset.phoneApp;
+    const active = activeAppId === appId;
+    const canOpen = typeof canOpenPhoneApp === "function"
+      ? canOpenPhoneApp(appId, state)
+      : (unlocked && canUseApps);
+    button.classList.toggle("is-selected", active);
+    button.disabled = !unlocked || !canUseApps || !canOpen;
+  });
+}
+
+function applyPhoneShellUi(uiRefs, screenState) {
+  if (!uiRefs?.phonePanel) {
+    return;
+  }
+
+  const {
+    unlocked,
+    usedToday,
+    minimized,
+    phoneView,
+    phoneTime,
+    canUseApps,
+    stageExpanded,
+    day,
+    activeAppId,
+  } = screenState;
+
+  uiRefs.phonePanel.classList.toggle("is-unlocked", unlocked);
+  uiRefs.phonePanel.classList.toggle("phone-used", usedToday);
+  uiRefs.phonePanel.classList.toggle("is-hidden-panel", minimized);
+  uiRefs.game?.classList.toggle("phone-collapsed", minimized);
+
+  if (uiRefs.phoneControls) {
+    uiRefs.phoneControls.hidden = !unlocked;
+    uiRefs.phoneControls.classList.toggle("is-collapsed", minimized);
+  }
+
+  if (uiRefs.phoneToggleButton) {
+    uiRefs.phoneToggleButton.hidden = !unlocked;
+    uiRefs.phoneToggleButton.setAttribute("aria-expanded", minimized ? "false" : "true");
+    uiRefs.phoneToggleButton.setAttribute("aria-label", minimized ? "폰 열기" : "폰 닫기");
+    uiRefs.phoneToggleButton.classList.toggle("is-active", !minimized);
+    const toggleIcon = uiRefs.phoneToggleButton.querySelector(".phone-control-icon");
+    const toggleLabel = uiRefs.phoneToggleButton.querySelector(".phone-control-label");
+    if (toggleIcon) {
+      toggleIcon.textContent = "";
+    }
+    if (toggleLabel) {
+      toggleLabel.textContent = "";
+    }
+  }
+
+  if (uiRefs.phoneStageButton) {
+    uiRefs.phoneStageButton.hidden = !unlocked || minimized;
+    uiRefs.phoneStageButton.disabled = !screenState.canOpenStage;
+    uiRefs.phoneStageButton.setAttribute("aria-label", "폰 화면 크게 보기");
+    uiRefs.phoneStageButton.setAttribute("aria-pressed", stageExpanded ? "true" : "false");
+    uiRefs.phoneStageButton.classList.toggle("is-active", stageExpanded);
+    const stageLabel = uiRefs.phoneStageButton.querySelector(".phone-control-label");
+    if (stageLabel) {
+      stageLabel.textContent = "";
+    }
+  }
+
+  if (uiRefs.phoneBackButton) {
+    const canGoBack = !minimized && (
+      (typeof isPhoneHomeRoute === "function" ? !isPhoneHomeRoute(phoneView) : phoneView !== "home")
+      || stageExpanded
+    );
+    uiRefs.phoneBackButton.hidden = !unlocked || minimized;
+    uiRefs.phoneBackButton.disabled = !canGoBack;
+    uiRefs.phoneBackButton.setAttribute("aria-label", "이전 화면");
+    const backLabel = uiRefs.phoneBackButton.querySelector(".phone-control-label");
+    if (backLabel) {
+      backLabel.textContent = "";
+    }
+  }
+
+  if (uiRefs.phoneTimeDisplay) {
+    uiRefs.phoneTimeDisplay.textContent = phoneTime;
+  }
+
+  if (uiRefs.phoneStatusSignal) {
+    uiRefs.phoneStatusSignal.textContent = `DAY ${String(day).padStart(2, "0")}`;
+  }
+
+  if (uiRefs.phoneDayChip) {
+    uiRefs.phoneDayChip.hidden = true;
   }
 
   uiRefs.phonePanel.querySelectorAll(".phone-app-btn[data-phone-app]").forEach((button) => {

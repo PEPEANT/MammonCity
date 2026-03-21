@@ -253,4 +253,119 @@ const NPC_DIALOGUES = {
       },
     },
   },
+  "convenience-cashier": {
+    startNodeId: "default-greeting",
+    nodes: {
+      "default-greeting": {
+        title: "편의점 계산대에 형광등 불빛이 반듯하게 내려앉아 있다",
+        lines: [
+          "점원이 바코드 스캐너를 내려놓고 짧게 눈을 맞춘다.",
+          "\"필요하신 거 있으시면 천천히 보세요.\"",
+        ],
+        choices: [
+          {
+            label: "인사만 하고 물건을 더 둘러본다",
+            end: true,
+          },
+          {
+            label: "계산대 앞에서 한마디 더 건넨다",
+            next: "small-talk",
+          },
+        ],
+      },
+      "small-talk": {
+        lines: [
+          "\"오늘은 좀 조용하네요.\"",
+          "점원은 계산대 화면을 흘끗 보다가 다시 웃으며 고개를 든다.",
+        ],
+        choices: [
+          {
+            label: "고개를 끄덕이고 물러난다",
+            end: true,
+            effects: {
+              npcRelation: {
+                affinityDelta: 1,
+              },
+            },
+          },
+        ],
+      },
+      "ask-number-intro": {
+        title: "점원이 바코드 리더기를 내려놓더니 시선을 한 번 더 붙잡는다",
+        lines: [
+          "\"저 혹시 번호 있어요?\"",
+          "예상 못한 질문이 계산대 위로 너무 자연스럽게 흘러나온다.",
+        ],
+        choices: [
+          {
+            label: "당황한 채 웃으며 넘긴다",
+            end: true,
+            effects: {
+              npcRelation: {
+                affinityDelta: 1,
+                attractionDelta: 2,
+                flags: {
+                  askedNumber: true,
+                },
+              },
+              memory: {
+                type: "npc",
+                title: "편의점 점원이 번호를 물어봤다",
+                body: "성형 뒤 처음 들른 편의점에서 점원이 뜻밖에도 번호를 물어봤다.",
+                tags: ["편의점", "외형 변화", "NPC"],
+              },
+            },
+          },
+          {
+            label: "짧게 대화를 이어본다",
+            next: "ask-number-followup",
+            effects: {
+              npcRelation: {
+                met: true,
+                affinityDelta: 1,
+                attractionDelta: 2,
+                flags: {
+                  askedNumber: true,
+                },
+              },
+            },
+          },
+        ],
+      },
+      "ask-number-followup": {
+        lines: [
+          "\"아, 아니... 그냥 자주 오시면 기억해두려고요.\"",
+          "점원은 민망한 듯 웃지만 눈빛은 조금 들떠 있다.",
+        ],
+        choices: [
+          {
+            label: "가볍게 웃고 계산대를 떠난다",
+            end: true,
+            effects: {
+              npcRelation: {
+                affinityDelta: 1,
+              },
+            },
+          },
+        ],
+      },
+      "post-surgery-repeat": {
+        lines: [
+          "\"오늘도 오셨네요. 필요한 거 있으시면 바로 말씀하세요.\"",
+          "점원의 시선이 전보다 한결 부드럽게 따라온다.",
+        ],
+        choices: [
+          {
+            label: "가볍게 인사하고 물건을 고른다",
+            end: true,
+            effects: {
+              npcRelation: {
+                affinityDelta: 1,
+              },
+            },
+          },
+        ],
+      },
+    },
+  },
 };

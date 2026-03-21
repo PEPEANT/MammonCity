@@ -172,6 +172,18 @@
   white-space: nowrap;
 }
 
+#phone-stage-btn,
+#phone-back-btn {
+  flex: 0 0 52px;
+  padding: 8px 6px;
+  gap: 0;
+}
+
+#phone-stage-btn .phone-control-label,
+#phone-back-btn .phone-control-label {
+  display: none;
+}
+
 #phone-home-btn {
   flex: 0 0 58px;
   padding: 6px;
@@ -431,7 +443,7 @@
   width: 100%;
   height: 100%;
   border-radius: 26px;
-  padding: 18px 12px 72px;
+  padding: 18px 12px 84px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -500,7 +512,7 @@
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.94);
+  color: rgba(11, 18, 32, 0.82);
 }
 
 .phone-status-signal {
@@ -509,22 +521,15 @@
   gap: 4px;
   padding: 4px 7px;
   border-radius: 999px;
-  background: rgba(6, 10, 18, 0.26);
+  background: rgba(255, 255, 255, 0.34);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   backdrop-filter: blur(6px);
   font-size: 8px;
+  color: rgba(11, 18, 32, 0.82);
 }
 
 .phone-day-chip {
-  align-self: stretch;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  text-align: center;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  display: none;
 }
 
 .phone-hd,
@@ -602,9 +607,8 @@
 }
 
 .phone-app-screen {
-  margin-top: auto;
   min-height: 0;
-  flex: 1;
+  flex: 1 1 0;
   padding: 12px 10px;
   border-radius: 20px;
   background: rgba(6, 10, 20, 0.94);
@@ -837,6 +841,79 @@
   color: rgba(200, 215, 240, 0.72);
   text-align: center;
   padding: 12px 0;
+}
+
+.phone-app-tab-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.phone-app-tab {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(220, 232, 255, 0.72);
+  padding: 9px 10px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease, transform 0.14s ease;
+}
+
+.phone-app-tab:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.10);
+}
+
+.phone-app-tab.is-active {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #ffffff;
+}
+
+.phone-job-card-note {
+  font-size: 10px;
+  line-height: 1.5;
+  color: rgba(200, 215, 240, 0.74);
+}
+
+.phone-career-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.phone-career-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.phone-career-summary-label {
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: rgba(200, 215, 245, 0.58);
+}
+
+.phone-career-summary-value {
+  font-size: 15px;
+  font-weight: 900;
+  color: #ffffff;
+  line-height: 1.2;
+}
+
+.phone-career-cert-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .phone-gallery-grid {
@@ -1709,6 +1786,12 @@
     padding: 5px;
   }
 
+  #phone-stage-btn,
+  #phone-back-btn {
+    flex-basis: 44px;
+    padding: 6px 5px;
+  }
+
   #phone-home-btn .phone-control-icon {
     width: 14px;
     height: 20px;
@@ -1758,7 +1841,7 @@
 
   .phone-screen {
     border-radius: 22px;
-    padding: 14px 10px 60px;
+    padding: 14px 10px 72px;
     gap: 8px;
   }
 
@@ -1776,11 +1859,6 @@
   .phone-status-signal {
     padding: 3px 5px;
     font-size: 7px;
-  }
-
-  .phone-day-chip {
-    padding: 6px 8px;
-    font-size: 10px;
   }
 
   .phone-apps {
@@ -1803,6 +1881,7 @@
   }
 
   .phone-app-screen {
+    flex: 1 1 0;
     padding: 10px 8px;
     border-radius: 16px;
     gap: 8px;

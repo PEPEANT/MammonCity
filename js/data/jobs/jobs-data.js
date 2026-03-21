@@ -143,3 +143,62 @@ const JOBS = [
 ];
 
 const JOB_LOOKUP = Object.fromEntries(JOBS.map((job) => [job.id, job]));
+
+const CAREER_PREP_LABELS = {
+  service: "서비스 준비",
+  labor: "현장 준비",
+  office: "사무 준비",
+  academic: "학업 준비",
+};
+
+const CAREER_CERTIFICATION_LABELS = {
+  driverLicense: "운전면허",
+  computerCert: "컴퓨터 자격",
+};
+
+const CAREER_JOB_POSTINGS = [
+  {
+    id: "office-assistant",
+    title: "사무보조 계약직",
+    emoji: "💼",
+    tone: "cobalt",
+    prepKey: "office",
+    requiredPrep: 3,
+    requiredCerts: ["computerCert"],
+    baseChance: 0.46,
+    unlockJobId: "dispatch_monitor",
+    description: "문서 정리와 안내 업무를 맡을 지원자를 찾는다. 도서관 준비도와 컴퓨터 자격이 필요하다.",
+  },
+  {
+    id: "learning-center-clerk",
+    title: "학원 운영 보조",
+    emoji: "📚",
+    tone: "mint",
+    prepKey: "academic",
+    requiredPrep: 3,
+    requiredCerts: ["computerCert"],
+    baseChance: 0.44,
+    unlockJobId: "study_coach",
+    description: "학원 프런트와 수업 지원을 맡는 장기 루트다. 수업 준비 경험과 문서 처리가 중요하다.",
+  },
+  {
+    id: "field-runner",
+    title: "현장 순회 계약직",
+    emoji: "🛵",
+    tone: "steel",
+    prepKey: "service",
+    requiredPrep: 0,
+    requiredCerts: ["driverLicense"],
+    baseChance: 0.42,
+    unlockJobId: "smart_store",
+    description: "여러 현장을 오가며 점검과 전달 업무를 맡는 루트다. 운전면허가 있어야 지원할 수 있다.",
+  },
+];
+
+const CAREER_JOB_POSTING_LOOKUP = Object.fromEntries(
+  CAREER_JOB_POSTINGS.map((posting) => [posting.id, posting]),
+);
+
+function getCareerPostingById(postingId) {
+  return CAREER_JOB_POSTING_LOOKUP[postingId] || null;
+}

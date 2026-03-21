@@ -59,15 +59,7 @@ async function fetchTopRankings(limit = RANKING_LIMIT) {
   }
 }
 
-// Firebase 미설정 시 폴백 Mock 데이터
+// Firebase 미설정 시 폴백 — 가짜 데이터 없음
 function getMockRankings() {
-  return [
-    { name: "배금고수", money: 2920000, rank: "S", job: "오피스 청소" },
-    { name: "돈냄새", money: 2450000, rank: "A", job: "야간 편의점" },
-    { name: "알바왕", money: 2180000, rank: "A", job: "새벽 물류" },
-    { name: "생존러", money: 1840000, rank: "B", job: "점심 배달" },
-    { name: "버티기", money: 1560000, rank: "C", job: "오픈 카페" },
-    { name: "첫주급", money: 1230000, rank: "C", job: "중학생 과외" },
-    { name: "힘들다", money: 980000, rank: "D", job: "무직" },
-  ];
+  return [];
 }

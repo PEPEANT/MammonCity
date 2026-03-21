@@ -1,53 +1,104 @@
 # 저장 시스템
-현재 결론: 게임은 `localStorage`에 자동 저장되지만, 타이틀에서는 `이어하기`와 `새로 시작`을 직접 고르게 한다. DEV 이벤트 재생 상태는 저장하지 않는다.
+현재 결론: 세이브는 `localStorage` 기반으로 동작하고, 지금은 `jobs`, `happiness`, `inventory`, `ownership`, `world`를 포함한 현재 플레이 상태를 통째로 저장한다.
 
 ## 목적
 
-- 30일 구조에서 중간 이탈 후에도 이어할 수 있게 한다.
-- 새 게임과 기존 저장 복구를 분리해 의도치 않은 자동 진입을 막는다.
-- DEV 테스트 장면이 본 저장을 덮어쓰지 않게 한다.
+현재 저장/불러오기 범위와 예외 규칙을 빠르게 확인하기 위한 문서다.
 
 ## 현재 규칙
 
 1. 저장 키는 `mammon-city-save-v1`이다.
-2. 시작 화면이 열려 있을 때는 저장하지 않는다.
-3. 인게임 상태에서 `renderGame()`이 돌면 자동 저장한다.
-4. 창을 닫거나 페이지를 떠날 때도 한 번 더 저장한다.
-5. 저장 데이터가 있으면 타이틀에서 `이어하기` 버튼이 보인다.
-6. `이어하기`를 누르면 마지막 진행 상태를 복구한다.
-7. `새로 시작`을 누르면 기존 저장을 지우고 1일차부터 다시 시작한다.
-8. `devPreviewMode = true`인 DEV 이벤트 재생 상태는 저장하지 않는다.
+2. 저장 버전은 `1`이다.
+3. 시작 화면이 열려 있을 때는 저장하지 않는다.
+4. `devPreviewMode = true`일 때는 저장하지 않는다.
+5. `renderGame()` 흐름 중 `persistState()`가 호출되는 구조다.
+6. 저장 데이터는 `serializeState()`에서 만들고, 복구는 `hydrateState()`에서 한다.
+7. 새 게임 시작과 타이틀 복귀 시 기존 저장은 지운다.
 
-## 저장 대상
+## 주요 저장 대상
 
-- `day`, `money`, `stamina`, `energy`
-- `scene`, `storyKey`, `storyStep`
-- `hasPhone`, `phoneMinimized`, `phoneView`
-- `phoneUsedToday`, `jobApplicationDoneToday`
-- `phonePreview`, `interviewResult`, `nextDayShift`
+- 날짜, 돈, 체력, 에너지
+- 현재 장면과 스토리 진행값
+- 폰 상태와 앱 상태
+- `jobs`
+- `happiness`
+- `inventory`
+- `ownership`
+- `world`
+- `memory`
+- `bank`
+- `dialogue`
 - `activeJobs`, `seenIncidents`
-- `jobVisits`, `dayOffers`
-- `currentOffer`, `currentIncident`
-- `lastResult`, `endingSummary`
-- `day1CleanupDone`, `cleaningGame`
-- `headline`
+- 현재 공고, 예약 근무, 결과 카드
 
-`activeJobs`, `seenIncidents`는 저장 시 배열로 바꾸고 복구할 때 다시 `Set`으로 되돌린다.
+## jobs 저장 범위
 
-## DEV 예외
+`state.jobs`
 
-- DEV 이벤트 재생은 깨끗한 테스트 상태를 새로 만든다.
-- 이 상태에는 `devPreviewMode`가 켜진다.
-- `devPreviewMode`가 켜진 동안에는 자동 저장과 종료 직전 저장이 모두 막힌다.
-- `원래 상태`를 누르면 재생 전 상태로 돌아간다.
+- `dailyOffers`
+- `scheduledShift`
+- `interviewResult`
+- `applicationDoneToday`
+- `activeTrack`
+- `careerOffers`
+- `career`
+- `careerPrep`
+- `certifications`
+- `careerApplicationDoneToday`
 
-## 제약
+## happiness save scope
 
-- 저장 버전은 현재 `1`이다.
-- 버전이 다르거나 JSON 파싱에 실패하면 저장을 무시하고 새 게임으로 본다.
-- 저장이 있어도 자동으로 인게임에 들어가지는 않는다.
+`state.happiness`
 
-## 다음 문서 추천
+- `value`
+- `status`
+- `dailyDecay`
+- `lastModifiedDay`
 
-- `day-data-layout.md`
-- `early-progression.md`
+하위 호환을 위해 top-level 별칭도 같이 유지한다.
+
+- `dayOffers`
+- `nextDayShift`
+- `interviewResult`
+- `jobApplicationDoneToday`
+
+## inventory / ownership 저장 범위
+
+### inventory
+
+- `panelOpen`
+- `activeTab`
+- `slotLimit`
+- `items`
+- `equipped`
+
+### ownership
+
+- `residence`
+- `home`
+- `vehicle`
+
+## world 저장 범위
+
+- `currentLocation`
+- `alleyNpcVisible`
+- `alleyNpcId`
+- `pendingTravelTarget`
+
+## 복구 메모
+
+- `activeJobs`, `seenIncidents`는 저장 시 배열로 바꾸고 복구 시 다시 `Set`으로 돌린다.
+- 중첩 객체인 `inventory`, `ownership`, `jobs`, `bank`, `dialogue`, `memory`, `world`는 hydrate 과정에서 기본값과 합쳐 복구한다.
+- `jobs`는 복구 후 `syncJobsDomainState()`로 다시 정규화한다.
+
+## 현재 제약
+
+- 시작 화면 진입 시 저장을 비우는 흐름이 여전히 남아 있다.
+- 저장 슬롯 시스템은 아직 없다.
+- 자동 저장은 있지만 사용자용 `이어하기` UX는 더 다듬을 여지가 있다.
+
+## 다음 문서
+
+- [phone-system.md](./phone-system.md)
+- [design/inventory.md](./design/inventory.md)
+- [design/ownership.md](./design/ownership.md)

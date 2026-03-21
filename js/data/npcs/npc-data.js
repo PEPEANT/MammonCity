@@ -26,4 +26,34 @@ const NPC_DATA = {
     interactionTypes: ["talk"],
     tags: ["동네 주민", "골목"],
   },
+  "convenience-cashier": {
+    id: "convenience-cashier",
+    name: "편의점 점원",
+    role: "cashier",
+    homeLocation: "convenience-store",
+    art: CHARACTER_ART.convenienceCashier.default,
+    startNodeId: "default-greeting",
+    interactionTypes: ["talk"],
+    tags: ["상점", "편의점"],
+    presentations: [
+      {
+        when: {
+          playerSurgeryDone: true,
+          missingNpcRelationFlag: "askedNumber",
+        },
+        art: CHARACTER_ART.convenienceCashier.postSurgery,
+        startNodeId: "ask-number-intro",
+        tags: ["상점", "편의점", "호감"],
+      },
+      {
+        when: {
+          playerSurgeryDone: true,
+          npcRelationFlag: "askedNumber",
+        },
+        art: CHARACTER_ART.convenienceCashier.postSurgery,
+        startNodeId: "post-surgery-repeat",
+        tags: ["상점", "편의점", "호감"],
+      },
+    ],
+  },
 };

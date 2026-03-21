@@ -10,11 +10,11 @@ $removeScript = Join-Path $scriptRoot "remove-green-screen.ps1"
 
 $jobs = @(
   @{
-    Input = Join-Path $projectRoot "me_0.png"
+    Input = Join-Path $projectRoot "assets\\_incoming\\characters\\player\\player-standing-source.png"
     Output = Join-Path $projectRoot "assets\\characters\\player\\me-standing.png"
   },
   @{
-    Input = Join-Path $projectRoot "mom__0.png"
+    Input = Join-Path $projectRoot "assets\\_incoming\\characters\\player\\mom-reward-source.png"
     Output = Join-Path $projectRoot "assets\\characters\\player\\mom-reward.png"
   }
 )

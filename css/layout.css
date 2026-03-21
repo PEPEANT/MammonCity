@@ -321,6 +321,11 @@ body {
   line-height: 1.5;
 }
 
+.dev-editor-code {
+  min-height: 150px;
+  font-family: Consolas, "Courier New", monospace;
+}
+
 /* ═══════════════════════════════════════════════════════
    #game: 720×480 뷰포트 비율 유지
    -- 씬이 전체를 채우고 HUD가 위에 float
@@ -464,7 +469,7 @@ body {
 
 #actors-layer {
   position: absolute;
-  top: 38px;
+  top: 44px;
   left: 0;
   right: var(--phone-panel-width);
   bottom: 86px;
@@ -485,23 +490,31 @@ body {
   right: 0;
 }
 
-#memory-button {
+#side-toolbar {
   position: absolute;
-  top: 84px;
+  top: 56px;
   right: calc(var(--phone-panel-width) + 12px);
   z-index: 12;
 }
 
-#memory-panel {
-  position: absolute;
-  top: 122px;
-  right: calc(var(--phone-panel-width) + 12px);
-  width: min(304px, calc(100% - var(--phone-panel-width) - 24px));
-  max-height: calc(100% - 138px);
-  z-index: 13;
+#game.phone-collapsed #side-toolbar {
+  right: 12px;
 }
 
-#game.phone-collapsed #memory-button,
+#character-panel,
+#inventory-panel,
+#memory-panel {
+  position: absolute;
+  top: 56px;
+  right: calc(var(--phone-panel-width) + 12px);
+  width: min(320px, calc(100% - var(--phone-panel-width) - 24px));
+  max-height: calc(100% - 72px);
+  z-index: 13;
+  overflow-y: auto;
+}
+
+#game.phone-collapsed #character-panel,
+#game.phone-collapsed #inventory-panel,
 #game.phone-collapsed #memory-panel {
   right: 12px;
 }
@@ -591,27 +604,46 @@ body {
 }
 
 /* ════════════════════════════════════════════════════
-   HUD 레이어: 상태바 / 헤드라인 / 텍스트박스 / 선택지
+   HUD 레이어: 플로팅 상태 / 헤드라인 / 텍스트박스 / 선택지
    모두 씬 위에 float, 폰 패널 폭만큼 피해서 배치
 ════════════════════════════════════════════════════ */
 
-/* 1. 상태바: 최상단, 위→아래 그라디언트 */
-#statusbar {
+/* 1-L. 좌상단 HUD: 일차 · 시간 */
+#hud-left {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 38px;
-  display: grid;
-  grid-template-columns: auto auto 1fr auto auto auto auto;
+  top: 10px;
+  left: 12px;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 14px;
-  background: linear-gradient(180deg,
-    rgba(0,0,0,0.75) 0%,
-    rgba(0,0,0,0.0) 100%
-  );
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(8, 10, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
   z-index: 20;
+  pointer-events: none;
+}
+
+/* 1-R. 우상단 HUD: 현금 / 체력 / 에너지 */
+#hud-right {
+  position: absolute;
+  top: 10px;
+  right: calc(var(--phone-panel-width) + 12px);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(8, 10, 20, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  z-index: 20;
+  pointer-events: none;
+}
+
+#game.phone-collapsed #hud-right {
+  right: 12px;
 }
 
 /* 2. 헤드라인: 텍스트박스 바로 위 floating */
@@ -762,18 +794,20 @@ body {
     bottom: 84px;
   }
 
-  #memory-button {
-    top: 84px;
-    left: 12px;
-    right: auto;
+  #side-toolbar {
+    top: 56px;
+    right: 12px;
+    left: auto;
   }
 
+  #character-panel,
+  #inventory-panel,
   #memory-panel {
-    top: 122px;
+    top: 56px;
     left: 12px;
     right: 12px;
     width: auto;
-    max-height: calc(100% - 226px);
+    max-height: calc(100% - 160px);
   }
 
   #character {
@@ -782,14 +816,10 @@ body {
     font-size: 52px;
   }
 
-  #statusbar {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding: 0 12px;
-  }
-
-  .progress-wrap {
-    grid-column: 1 / -1;
+  #hud-right {
+    right: 12px;
+    max-width: calc(100% - 24px);
+    font-size: 10px;
   }
 }
 

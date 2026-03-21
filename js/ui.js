@@ -18,6 +18,17 @@ function cacheUi() {
   ui.memoryPanel = document.getElementById("memory-panel");
   ui.memoryList = document.getElementById("memory-list");
   ui.memoryCloseButton = document.getElementById("memory-close-button");
+  ui.inventoryButton = document.getElementById("inventory-button");
+  ui.inventoryCount = document.getElementById("inventory-count");
+  ui.inventoryPanel = document.getElementById("inventory-panel");
+  ui.inventorySummary = document.getElementById("inventory-summary");
+  ui.inventoryTabs = document.getElementById("inventory-tabs");
+  ui.inventoryList = document.getElementById("inventory-list");
+  ui.inventoryCloseButton = document.getElementById("inventory-close-button");
+  ui.characterButton = document.getElementById("character-button");
+  ui.characterPanel = document.getElementById("character-panel");
+  ui.characterStats = document.getElementById("character-stats");
+  ui.characterCloseButton = document.getElementById("character-close-button");
   ui.bg = document.getElementById("bg");
   ui.buildings = document.getElementById("buildings");
   ui.outsideGoal = document.getElementById("outside-goal");
@@ -35,6 +46,7 @@ function cacheUi() {
   ui.nameInput = document.getElementById("name-input");
   ui.continueButton = document.getElementById("continue-button");
   ui.startButton = document.getElementById("start-button");
+  ui.rankingSubtitle = document.querySelector(".ranking-subtitle");
   ui.phonePanel = document.getElementById("phone-panel");
   ui.phoneStage = document.getElementById("phone-stage");
   ui.textbox = document.getElementById("textbox");
@@ -160,16 +172,27 @@ function advanceSceneText() {
 function setupStartScreen() {
   ui.startCard = ui.startScreen.querySelector(".start-card");
 
+  const kicker = ui.startCard.querySelector(".start-kicker");
   const title = ui.startCard.querySelector(".start-title");
   const sub = ui.startCard.querySelector(".start-sub");
+  const body = ui.startCard.querySelector(".start-body");
+  if (kicker) {
+    kicker.textContent = `현재 ${MAX_DAYS}일 프로토타입`;
+  }
   title.textContent = "\ubc30\uae08\ub3c4\uc2dc";
-  sub.textContent = `${MAX_DAYS}\uc77c \ub3d9\uc548 \ubc84\ud2f0\uba70 \ub3c8\uc744 \ubaa8\uc544\ubcf4\uc138\uc694.`;
+  sub.textContent = "\ud3f0 \uacf5\uace0\ub97c \ub4a4\uc9c0\uace0, \ub2e4\uc74c\ub0a0 \ucd9c\uadfc\uc744 \uc608\uc57d\ud558\uace0, \ubc84\ud2f4 \ud558\ub8e8\ub97c \ud604\uae08\uc73c\ub85c \ubc14\uafb8\ub294 \ub3c4\uc2dc \uc0dd\uc874 \uc2dc\ubbac\ub808\uc774\uc158.";
+  if (body) {
+    body.textContent = `1\uc77c\ucc28 \ud504\ub864\ub85c\uadf8\uc640 \ubc29\uccad\uc18c, \uc2a4\ub9c8\ud2b8\ud3f0 \uacf5\uace0 \uc9c0\uc6d0, \uc608\uc57d \ucd9c\uadfc, \ubc14\uae65 \uc774\ub3d9, \uae30\uc5b5 \ub85c\uadf8, ${MAX_DAYS}\uc77c \uacb0\uc0b0 \ub7ad\ud0b9\uae4c\uc9c0 \uc774\uc5b4\uc9d1\ub2c8\ub2e4.`;
+  }
   ui.nameInput.placeholder = "\ub2c9\ub124\uc784";
   ui.nameInput.autocomplete = "off";
   ui.startButton.textContent = "\uc2dc\uc791\ud558\uae30";
   if (ui.continueButton) {
     ui.continueButton.textContent = "\uc774\uc5b4\ud558\uae30";
     ui.continueButton.hidden = true;
+  }
+  if (ui.rankingSubtitle) {
+    ui.rankingSubtitle.textContent = `${MAX_DAYS}\uc77c \uacb0\uc0b0 \u00b7 \uc804\uad6d \ub7ad\ud0b9`;
   }
 }
 
@@ -197,6 +220,9 @@ function getPhonePanelState() {
     return createPhoneShellViewModel(state);
   }
 
+  const jobsState = typeof getJobsDomainState === "function"
+    ? getJobsDomainState(state)
+    : (state.jobs || {});
   const unlocked = Boolean(state.hasPhone);
   const usedToday = Boolean(state.phoneUsedToday);
   const minimized = Boolean(state.phoneMinimized);
@@ -209,9 +235,9 @@ function getPhonePanelState() {
   const canOpenStage = typeof canOpenPhoneStage === "function"
     ? canOpenPhoneStage()
     : (unlocked && !minimized && canUseApps);
-  const hasShiftToday = Boolean(state.nextDayShift && state.nextDayShift.day === state.day);
-  const hasBookedShift = Boolean(state.nextDayShift && state.nextDayShift.day > state.day);
-  const jobAppliedToday = Boolean(state.jobApplicationDoneToday);
+  const hasShiftToday = Boolean(jobsState.scheduledShift && jobsState.scheduledShift.day === state.day);
+  const hasBookedShift = Boolean(jobsState.scheduledShift && jobsState.scheduledShift.day > state.day);
+  const jobAppliedToday = Boolean(jobsState.applicationDoneToday);
   const stageExpanded = Boolean(state.phoneStageExpanded) && canOpenStage;
   const routeInfo = typeof parsePhoneRoute === "function"
     ? parsePhoneRoute(phoneView)
@@ -413,9 +439,7 @@ function renderMemoryPanel() {
     : (Array.isArray(memoryState.entries) ? memoryState.entries : []);
   const isOpen = Boolean(memoryState.panelOpen);
 
-  ui.memoryButton.hidden = false;
   ui.memoryButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
-  ui.memoryButton.classList.toggle("has-entries", entries.length > 0);
   if (ui.memoryCount) {
     ui.memoryCount.textContent = String(entries.length);
   }
@@ -456,6 +480,207 @@ function renderMemoryPanel() {
       </article>
     `;
   }).join("");
+}
+
+function renderCharacterPanelLegacy() {
+  if (!ui.characterButton || !ui.characterPanel || !ui.characterStats) {
+    return;
+  }
+
+  const isOpen = Boolean(state._characterPanelOpen);
+
+  ui.characterButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+  ui.characterPanel.hidden = !isOpen;
+  ui.characterPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+
+  if (!isOpen) return;
+
+  const stats = [
+    { key: "지능", label: "지능", cls: "intelligence", max: 100 },
+    { key: "평판", label: "평판", cls: "reputation",   max: 100 },
+    { key: "범죄도", label: "범죄도", cls: "crime",    max: 100 },
+  ];
+
+  ui.characterStats.innerHTML = "";
+  stats.forEach(({ key, label, cls, max }) => {
+    const val = Number(state[key]) || 0;
+    const pct = Math.min(100, Math.round((val / max) * 100));
+
+    const row = document.createElement("div");
+    row.className = "character-stat-row";
+    row.innerHTML = `
+      <span class="character-stat-name">${label}</span>
+      <div class="character-stat-bar-wrap">
+        <div class="character-stat-bar ${cls}" style="width:${pct}%"></div>
+      </div>
+      <span class="character-stat-val ${cls}">${val}</span>
+    `;
+    ui.characterStats.appendChild(row);
+  });
+}
+
+function renderCharacterPanel() {
+  if (!ui.characterButton || !ui.characterPanel || !ui.characterStats) {
+    return;
+  }
+
+  const isOpen = Boolean(state._characterPanelOpen);
+  const happinessState = typeof syncHappinessState === "function"
+    ? syncHappinessState(state)
+    : createDefaultHappinessState();
+  const happinessMeta = typeof getHappinessStatusLabel === "function"
+    ? getHappinessStatusLabel(happinessState.status)
+    : "";
+  const stats = [
+    { key: "지능", label: "지능", cls: "intelligence", max: 100 },
+    { key: "평판", label: "평판", cls: "reputation", max: 100 },
+    { key: "범죄도", label: "범죄도", cls: "crime", max: 100 },
+    { key: "happiness", label: "행복도", cls: "happiness", max: 100, value: happinessState.value, meta: happinessMeta, metaCls: happinessState.status },
+  ];
+
+  ui.characterButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  ui.characterPanel.hidden = !isOpen;
+  ui.characterPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+
+  if (!isOpen) {
+    return;
+  }
+
+  ui.characterStats.innerHTML = "";
+  stats.forEach(({ key, label, cls, max, value, meta, metaCls }) => {
+    const parsedValue = Number(value);
+    const val = Number.isFinite(parsedValue) ? parsedValue : (Number(state[key]) || 0);
+    const pct = Math.min(100, Math.round((val / max) * 100));
+    const metaMarkup = meta
+      ? `<span class="character-stat-meta ${metaCls || ""}">${meta}</span>`
+      : "";
+
+    const row = document.createElement("div");
+    row.className = "character-stat-row";
+    row.innerHTML = `
+      <div class="character-stat-name-wrap">
+        <span class="character-stat-name">${label}</span>
+        ${metaMarkup}
+      </div>
+      <div class="character-stat-bar-wrap">
+        <div class="character-stat-bar ${cls}" style="width:${pct}%"></div>
+      </div>
+      <span class="character-stat-val ${cls}">${val}</span>
+    `;
+    ui.characterStats.appendChild(row);
+  });
+}
+
+function renderInventoryPanel() {
+  if (!ui.inventoryButton || !ui.inventoryPanel || !ui.inventoryList) {
+    return;
+  }
+
+  const inventoryState = typeof syncInventoryState === "function"
+    ? syncInventoryState(state)
+    : createDefaultInventoryState();
+  const ownershipState = typeof syncOwnershipState === "function"
+    ? syncOwnershipState(state)
+    : createDefaultOwnershipState();
+  const tabs = typeof getInventoryTabs === "function"
+    ? getInventoryTabs()
+    : [
+        { id: "carry", label: "소지품" },
+        { id: "equipment", label: "장비" },
+        { id: "document", label: "문서" },
+        { id: "asset", label: "자산" },
+      ];
+  const counts = typeof getInventoryTabCounts === "function"
+    ? getInventoryTabCounts(state)
+    : Object.fromEntries(tabs.map((tab) => [tab.id, 0]));
+  const totalCount = typeof getInventoryBadgeCount === "function"
+    ? getInventoryBadgeCount(state)
+    : 0;
+  const slotLimit = typeof getInventorySlotLimit === "function"
+    ? getInventorySlotLimit(state)
+    : inventoryState.slotLimit;
+  const carryLoad = typeof getInventoryCarryLoad === "function"
+    ? getInventoryCarryLoad(state)
+    : 0;
+  const activeTab = inventoryState.activeTab || "carry";
+  const entries = typeof getInventoryEntriesByTab === "function"
+    ? getInventoryEntriesByTab(activeTab, state)
+    : [];
+  const residenceLabel = typeof getInventoryResidenceLabel === "function"
+    ? getInventoryResidenceLabel(state)
+    : (ownershipState.residence || "거처 미정");
+  const homeDefinition = typeof getOwnedHomeDefinition === "function"
+    ? getOwnedHomeDefinition(ownershipState.home)
+    : null;
+  const vehicleDefinition = typeof getOwnedVehicleDefinition === "function"
+    ? getOwnedVehicleDefinition(ownershipState.vehicle)
+    : null;
+  const isOpen = Boolean(inventoryState.panelOpen);
+
+  ui.inventoryButton.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  if (ui.inventoryCount) {
+    ui.inventoryCount.textContent = String(totalCount);
+  }
+
+  ui.inventoryPanel.hidden = !isOpen;
+  ui.inventoryPanel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+
+  if (!isOpen) {
+    return;
+  }
+
+  if (ui.inventorySummary) {
+    ui.inventorySummary.innerHTML = `
+      <div class="inventory-summary-chip">
+        <span class="inventory-summary-label">슬롯</span>
+        <span class="inventory-summary-value">${carryLoad} / ${slotLimit}</span>
+      </div>
+      <div class="inventory-summary-chip">
+        <span class="inventory-summary-label">거주</span>
+        <span class="inventory-summary-value">${escapeHtml(residenceLabel)}</span>
+      </div>
+      <div class="inventory-summary-chip">
+        <span class="inventory-summary-label">부동산</span>
+        <span class="inventory-summary-value">${escapeHtml(homeDefinition?.label || "-")}</span>
+      </div>
+      <div class="inventory-summary-chip">
+        <span class="inventory-summary-label">차량</span>
+        <span class="inventory-summary-value">${escapeHtml(vehicleDefinition?.label || "-")}</span>
+      </div>
+    `;
+  }
+
+  if (ui.inventoryTabs) {
+    ui.inventoryTabs.innerHTML = tabs.map((tab) => `
+      <button
+        class="inventory-tab${tab.id === activeTab ? " is-active" : ""}"
+        type="button"
+        data-inventory-tab="${escapeHtml(tab.id)}"
+      >
+        <span>${escapeHtml(tab.label)}</span>
+        <span class="inventory-tab-count">${counts[tab.id] || 0}</span>
+      </button>
+    `).join("");
+  }
+
+  if (!entries.length) {
+    ui.inventoryList.innerHTML = "";
+    return;
+  }
+
+  ui.inventoryList.innerHTML = `<div class="inventory-grid">${entries.map((entry) => {
+    const isEquipped = Array.isArray(entry.badges) && entry.badges.length > 0;
+    const qty = entry.quantity > 1 ? `<span class="inv-cell-qty">x${entry.quantity}</span>` : "";
+    const equipped = isEquipped ? ` is-equipped` : "";
+    return `
+      <div class="inv-cell${equipped}" title="${escapeHtml(entry.label || "")}">
+        <div class="inv-cell-icon">${entry.icon || "📦"}</div>
+        <div class="inv-cell-name">${escapeHtml(entry.label || "아이템")}</div>
+        ${qty}
+      </div>
+    `;
+  }).join("")}</div>`;
 }
 
 function applySceneBackgroundConfig(backgroundConfig = null) {
@@ -663,9 +888,15 @@ function renderActors(actors = []) {
     const wrapper = document.createElement(isInteractive ? "button" : "div");
     wrapper.className = "scene-actor";
     if (isInteractive) {
-      const npcName = typeof getNpcConfig === "function"
-        ? getNpcConfig(actor.npcId)?.name
-        : "";
+      const npcPresentation = typeof getNpcPresentation === "function"
+        ? getNpcPresentation(actor.npcId, state, {
+            source: "actor-render",
+            scene: state.scene,
+            locationId: typeof getCurrentLocationId === "function" ? getCurrentLocationId(state) : "",
+          })
+        : null;
+      const npcName = npcPresentation?.name
+        || (typeof getNpcConfig === "function" ? getNpcConfig(actor.npcId)?.name : "");
       wrapper.type = "button";
       wrapper.classList.add("is-interactive");
       wrapper.setAttribute("aria-label", `${npcName || actor.alt || actor.npcId}와 대화`);
@@ -714,7 +945,7 @@ function setProgressByScene(scene) {
     ending: 100,
   };
 
-  ui.progressbar.style.width = `${widthMap[scene] || 0}%`;
+  if (ui.progressbar) ui.progressbar.style.width = `${widthMap[scene] || 0}%`;
 }
 
 function buildBuildings() {
@@ -818,8 +1049,11 @@ function renderLocationMap(locationConfig, currentLocationId = "") {
   const mapTitle = map.title ? `<div class="location-map-title">${escapeHtml(map.title)}</div>` : "";
   const mapSubtitle = map.subtitle ? `<div class="location-map-subtitle">${escapeHtml(resolveDynamicText(map.subtitle))}</div>` : "";
   const nodes = Array.isArray(map.nodes) ? map.nodes : [];
+  const currentNodeId = map.mode === "district" && typeof getCurrentDistrictId === "function"
+    ? getCurrentDistrictId()
+    : currentLocationId;
   const nodesMarkup = nodes.map((node) => {
-    const isCurrent = node.id === currentLocationId;
+    const isCurrent = node.id === currentNodeId;
     const currentBadge = isCurrent ? '<span class="location-map-badge">현재</span>' : "";
     const emoji = node.emoji ? `<span class="location-map-emoji">${escapeHtml(node.emoji)}</span>` : "";
     const note = node.note ? `<div class="location-map-note">${escapeHtml(resolveDynamicText(node.note))}</div>` : "";
@@ -1120,7 +1354,10 @@ function renderBoardScene() {
   setSceneSpeaker("\uad6c\uc778 \uc571");
   renderTags([]);
   clearMessage();
-  renderOfferButtons(state.dayOffers);
+  const jobsState = typeof getJobsDomainState === "function"
+    ? getJobsDomainState(state)
+    : (state.jobs || {});
+  renderOfferButtons(jobsState.dailyOffers || []);
 }
 
 
@@ -1300,6 +1537,8 @@ function renderGame() {
   setHeadline(state.headline.badge, state.headline.text);
   setProgressByScene(state.scene);
   renderMemoryPanel();
+  renderInventoryPanel();
+  renderCharacterPanel();
   if (typeof persistState === "function") {
     persistState();
   }
@@ -1411,4 +1650,49 @@ function resolveDynamicText(text) {
   return String(text)
     .replaceAll("{nameCall}", nameCall)
     .replaceAll("{name}", displayName);
+}
+
+function setupStartScreen() {
+  ui.startCard = ui.startScreen.querySelector(".start-card");
+
+  const kicker = ui.startCard?.querySelector(".start-kicker");
+  const title = ui.startCard?.querySelector(".start-title");
+  const sub = ui.startCard?.querySelector(".start-sub");
+  const body = ui.startCard?.querySelector(".start-body");
+  const highlights = ui.startCard?.querySelector(".start-highlights");
+
+  if (kicker) {
+    kicker.hidden = true;
+    kicker.textContent = "";
+  }
+
+  if (sub) {
+    sub.hidden = true;
+    sub.textContent = "";
+  }
+
+  if (body) {
+    body.hidden = true;
+    body.textContent = "";
+  }
+
+  if (highlights) {
+    highlights.hidden = true;
+    highlights.innerHTML = "";
+  }
+
+  if (title) {
+    title.textContent = "\ubc30\uae08\ub3c4\uc2dc";
+  }
+
+  ui.nameInput.placeholder = "\ub2c9\ub124\uc784";
+  ui.nameInput.autocomplete = "off";
+  ui.startButton.textContent = "\uc2dc\uc791\ud558\uae30";
+  if (ui.continueButton) {
+    ui.continueButton.textContent = "\uc774\uc5b4\ud558\uae30";
+    ui.continueButton.hidden = true;
+  }
+  if (ui.rankingSubtitle) {
+    ui.rankingSubtitle.textContent = `${MAX_DAYS}\uc77c \uacb0\uc0b0 \u00b7 \uc804\uad6d \ub7ad\ud0b9`;
+  }
 }

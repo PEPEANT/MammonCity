@@ -1,33 +1,65 @@
-# Incoming Images
+# Incoming Assets
 
-New image files should land here first before being renamed or moved into live asset folders.
+Raw source assets live here before they are turned into final in-game files.
 
-## Folders
+## Folder Structure
 
-- `characters/`
-  For character portraits, NPC sprites, or pose variants.
-- `backgrounds/`
-  For playable location backgrounds or scene plates.
+- `characters/player/`
+  Raw player portraits and cutscene source art.
+- `characters/npc/`
+  Raw NPC portraits, sprites, and pose variants.
+- `backgrounds/city/`
+  Outdoor streets, districts, campuses, and other city-facing plates.
+- `backgrounds/interior/`
+  Indoor backgrounds such as stations, convenience stores, and hospital interiors.
 - `references/`
-  For photo references, map references, and source images that are not used directly in-game.
+  Reference-only images that are not used directly in-game.
 - `misc/`
-  Temporary catch-all for anything that has not been classified yet.
+  Temporary holding area for files that are not classified yet.
 
-## Current Root PNG Intake Candidates
+## Naming Rules
 
-- `me_0.png`
-  Suggested target: `characters/`
-- `mom__0.png`
-  Suggested target: `characters/`
-- `npc.png`
-  Suggested target: `characters/`
-- `convenience store woman.png`
-  Suggested target: `characters/`
-- `Busan Gwangalli City 02.png`
-  Suggested target: `references/` or `backgrounds/`
-- `Directions to Seoul Station.png`
-  Suggested target: `references/`
+- Use lowercase slug names.
+- Prefer `*-source` for raw art that will become a live asset.
+- Prefer `*-reference` for look-dev or photo reference material.
+- Do not leave spaces, Korean file names, or generated hash names after sorting.
+
+## Current Sorted Files
+
+### `characters/player/`
+
+- `player-standing-source.png`
+- `mom-reward-source.png`
+
+### `characters/npc/`
+
+- `npc-woman-source.png`
+- `high-school-girl-source.png`
+- `convenience-cashier-default-source.png`
+- `convenience-cashier-post-surgery-source.png`
+
+### `backgrounds/city/`
+
+- `bus-stop-source.png`
+- `station-front-source.jpg`
+- `city-crossroads-source.jpg`
+- `university-district-source.png`
+- `campus-park-source.jpg`
+
+### `backgrounds/interior/`
+
+- `baegeum-hospital-source.png`
+- `convenience-store-source.jpg`
+- `station-interior-source.jpg`
+
+### `references/`
+
+- `seoul-route-reference.png`
+- `news-reference-01.jpg`
+- `downloaded-reference-01.jpg`
+- `grok-reference-01.png`
+- `grok-reference-02.png`
 
 ## Rule
 
-Do not move files straight into `assets/characters` or `assets/days` until naming and usage are decided.
+Do not move files straight into live asset folders until the final in-game name and usage are decided.

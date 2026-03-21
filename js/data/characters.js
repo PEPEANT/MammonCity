@@ -1,6 +1,8 @@
 const CHARACTER_ART = {
   player: {
+    default: "assets/characters/player/standing.png",
     standing: "assets/characters/player/standing.png",
+    postSurgery: "assets/characters/player/standing.png",
   },
   mom: {
     reward: "assets/characters/mom/reward.png",
@@ -16,5 +18,9 @@ const CHARACTER_ART = {
   },
   alleyAunt: {
     default: "assets/characters/alley-aunt/default.png",
+  },
+  convenienceCashier: {
+    default: "assets/characters/convenience-cashier/default.png",
+    postSurgery: "assets/characters/convenience-cashier/post-surgery.png",
   },
 };

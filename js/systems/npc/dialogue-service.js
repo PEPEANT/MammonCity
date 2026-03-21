@@ -63,10 +63,20 @@ function getNpcDialogueNode(npcId = "", nodeId = "") {
   return entry.nodes[nodeId] || null;
 }
 
-function getNpcDialogueStartNodeId(npcId = "") {
+function getNpcDialogueStartNodeId(npcId = "", targetState = state, context = {}) {
   const entry = getNpcDialogueEntry(npcId);
   if (!entry) {
     return "";
+  }
+
+  const presentation = typeof getNpcPresentation === "function"
+    ? getNpcPresentation(npcId, targetState, {
+        ...context,
+        source: context.source || "dialogue-start",
+      })
+    : null;
+  if (presentation?.startNodeId && entry.nodes?.[presentation.startNodeId]) {
+    return presentation.startNodeId;
   }
 
   if (entry.startNodeId && entry.nodes?.[entry.startNodeId]) {
@@ -76,7 +86,7 @@ function getNpcDialogueStartNodeId(npcId = "") {
   return Object.keys(entry.nodes || {})[0] || "";
 }
 
-function applyDialogueEffects(effects = {}, targetState = state) {
+function applyDialogueEffects(effects = {}, targetState = state, context = {}) {
   if (!effects || typeof effects !== "object" || !targetState) {
     return;
   }
@@ -98,14 +108,26 @@ function applyDialogueEffects(effects = {}, targetState = state) {
   if (Number.isFinite(effects.moneyDelta)) {
     targetState.money = Math.max(0, targetState.money + Math.round(effects.moneyDelta));
   }
+
+  if (effects.appearance && typeof patchAppearanceState === "function") {
+    patchAppearanceState(effects.appearance, targetState);
+  }
+
+  if (effects.npcRelation && typeof patchNpcRelation === "function") {
+    patchNpcRelation(effects.npcId || context.npcId, effects.npcRelation, targetState);
+  }
 }
 
 function startNpcDialogue(npcId, options = {}, targetState = state) {
   const resolvedNpcId = String(npcId || "").trim();
-  const startNodeId = options.nodeId || getNpcDialogueStartNodeId(resolvedNpcId);
+  const startNodeId = options.nodeId || getNpcDialogueStartNodeId(resolvedNpcId, targetState, options);
 
   if (!resolvedNpcId || !startNodeId || !getNpcDialogueNode(resolvedNpcId, startNodeId)) {
     return false;
+  }
+
+  if (typeof patchNpcRelation === "function") {
+    patchNpcRelation(resolvedNpcId, { met: true }, targetState);
   }
 
   const dialogueState = syncDialogueState(targetState);
@@ -128,6 +150,14 @@ function getActiveDialogueNode(targetState = state) {
 
   const npc = getNpcConfig(dialogueState.npcId);
   const node = getNpcDialogueNode(dialogueState.npcId, dialogueState.nodeId);
+  const presentation = typeof getNpcPresentation === "function"
+    ? getNpcPresentation(dialogueState.npcId, targetState, {
+        scene: "dialogue",
+        source: dialogueState.source || "dialogue",
+        locationId: dialogueState.returnLocationId || "",
+      })
+    : null;
+
   if (!npc || !node) {
     return null;
   }
@@ -136,10 +166,11 @@ function getActiveDialogueNode(targetState = state) {
     ...node,
     npcId: dialogueState.npcId,
     nodeId: dialogueState.nodeId,
-    speaker: node.speaker || npc.name,
+    speaker: node.speaker || presentation?.name || npc.name,
     tags: Array.isArray(node.tags) && node.tags.length
       ? [...node.tags]
-      : [...(npc.tags || []), "대화"],
+      : [...(presentation?.tags || npc.tags || []), "dialogue"],
+    presentation,
   };
 }
 
@@ -182,7 +213,9 @@ function chooseDialogueOption(index, targetState = state) {
   }
 
   if (choice.effects) {
-    applyDialogueEffects(choice.effects, targetState);
+    applyDialogueEffects(choice.effects, targetState, {
+      npcId: activeNode?.npcId || "",
+    });
   }
 
   if (choice.next) {
