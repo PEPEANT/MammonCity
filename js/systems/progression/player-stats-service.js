@@ -411,13 +411,23 @@ function createPlayerStatSections(targetState = state) {
     ? getHungerStatusTone(targetState)
     : "";
   const lifestyle = getPlayerLifestyleSnapshot(targetState);
-
   const formatDisplayValue = (value) => {
     if (typeof formatCash === "function" && Number.isFinite(value)) {
       return formatCash(value);
     }
     return String(value ?? "");
   };
+  const accountSummary = typeof getStartAccountSummary === "function"
+    ? getStartAccountSummary(targetState?.accountProfileId || "")
+    : null;
+  const accountBonuses = accountSummary?.startBonuses || {};
+  const accountBonusParts = [];
+  if ((Number(accountBonuses.startingCashBonus) || 0) > 0) {
+    accountBonusParts.push(`현금 +${formatDisplayValue(accountBonuses.startingCashBonus)}`);
+  }
+  if ((Number(accountBonuses.startHappinessBonus) || 0) > 0) {
+    accountBonusParts.push(`행복 +${Math.max(0, Math.round(Number(accountBonuses.startHappinessBonus) || 0))}`);
+  }
   const simplifiedLifestyleSummaries = [
     { label: "수저", value: lifestyle.originLabel },
     { label: "외모도", value: typeof getPlayerAppearanceLevelLabel === "function" ? getPlayerAppearanceLevelLabel(targetState) : "1LV" },
@@ -502,5 +512,26 @@ function createPlayerStatSections(targetState = state) {
       ],
       summaries: simplifiedLifestyleSummaries,
     },
+    ...(accountSummary
+      ? [{
+          id: "account",
+          label: "계정 진행",
+          summaries: [
+            { label: "계정 레벨", value: `${Math.max(0, Math.round(Number(accountSummary.accountLevel) || 0))}LV` },
+            { label: "완주", value: `${Math.max(0, Math.round(Number(accountSummary.completedRuns) || 0))}회` },
+            { label: "최고 순자산", value: formatDisplayValue(accountSummary.bestNetWorth || 0) },
+            { label: "저장", value: accountSummary.sourceLabel || "브라우저 계정" },
+          ],
+          chips: accountBonusParts.length
+            ? accountBonusParts.map((label) => ({
+                label: `다음 회차 ${label}`,
+                tone: "ready",
+              }))
+            : [{
+                label: `${MAX_DAYS}턴 완주 때마다 계정이 1LV 오른다`,
+                tone: "ready",
+              }],
+        }]
+      : []),
   ];
 }

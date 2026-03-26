@@ -2380,6 +2380,343 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+/* ── 로그인 섹션 ── */
+.start-login-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.start-google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.96);
+  color: #3c4043;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.start-google-btn:hover {
+  background: #ffffff;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.28);
+  transform: translateY(-1px);
+}
+
+.start-google-btn:disabled,
+.start-login-btn:disabled,
+.start-guest-btn:disabled {
+  opacity: 0.58;
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+
+.start-google-icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.start-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.start-login-divider-line {
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.start-login-divider-text {
+  color: rgba(244, 247, 255, 0.38);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.start-login-btn {
+  display: block;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(244, 247, 255, 0.88);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.start-login-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.start-guest-btn {
+  display: block;
+  width: 100%;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  background: transparent;
+  color: rgba(244, 247, 255, 0.44);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s;
+}
+
+.start-guest-btn:hover {
+  color: rgba(244, 247, 255, 0.72);
+}
+
+.start-login-status {
+  margin: 2px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 247, 255, 0.78);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.start-login-status[data-tone="success"] {
+  border-color: rgba(110, 231, 183, 0.22);
+  background: rgba(16, 185, 129, 0.12);
+  color: rgba(209, 250, 229, 0.92);
+}
+
+.start-login-status[data-tone="error"] {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: rgba(254, 226, 226, 0.92);
+}
+
+.start-login-status[data-tone="warn"] {
+  border-color: rgba(251, 191, 36, 0.24);
+  background: rgba(120, 53, 15, 0.22);
+  color: rgba(254, 243, 199, 0.92);
+}
+
+.start-guest-note {
+  margin: -2px 0 0;
+  color: rgba(244, 247, 255, 0.34);
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.start-auth-modal {
+  position: absolute;
+  inset: 0;
+  z-index: 260;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.start-auth-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 6, 12, 0.72);
+  backdrop-filter: blur(12px);
+}
+
+.start-auth-dialog {
+  position: relative;
+  z-index: 1;
+  width: min(420px, calc(100vw - 32px));
+  padding: 22px;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(180deg, rgba(24, 29, 41, 0.96) 0%, rgba(13, 17, 27, 0.98) 100%);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.start-auth-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 247, 255, 0.78);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.start-auth-tabs {
+  display: inline-flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.start-auth-tab {
+  min-width: 88px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(244, 247, 255, 0.66);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.start-auth-tab[aria-selected="true"] {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+}
+
+.start-auth-copy {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.start-auth-title {
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.start-auth-subtitle {
+  color: rgba(244, 247, 255, 0.62);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.start-auth-form {
+  display: grid;
+  gap: 12px;
+}
+
+.start-auth-field {
+  display: grid;
+  gap: 8px;
+}
+
+.start-auth-label {
+  color: rgba(244, 247, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.start-auth-input {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  font-size: 14px;
+  outline: none;
+}
+
+.start-auth-input::placeholder {
+  color: rgba(244, 247, 255, 0.28);
+}
+
+.start-auth-input:focus {
+  border-color: rgba(255, 255, 255, 0.34);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.start-auth-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(244, 247, 255, 0.84);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.start-auth-message[data-tone="error"] {
+  border-color: rgba(248, 113, 113, 0.24);
+  background: rgba(127, 29, 29, 0.24);
+  color: rgba(254, 226, 226, 0.94);
+}
+
+.start-auth-message[data-tone="success"] {
+  border-color: rgba(110, 231, 183, 0.24);
+  background: rgba(16, 185, 129, 0.14);
+  color: rgba(209, 250, 229, 0.94);
+}
+
+.start-auth-submit {
+  width: 100%;
+  margin-top: 4px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: 14px;
+  background: #f3f4f6;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+
+.start-auth-submit:hover {
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.start-auth-submit:disabled,
+.start-auth-close:disabled,
+.start-auth-tab:disabled {
+  opacity: 0.62;
+  cursor: default;
+  transform: none;
+}
+
+/* ── 개인정보 고지 ── */
+.start-privacy-notice {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: rgba(244, 247, 255, 0.34);
+  text-align: center;
+}
+
+.start-privacy-link {
+  color: rgba(244, 247, 255, 0.52);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.start-privacy-link:hover {
+  color: rgba(244, 247, 255, 0.8);
+}
+
 @media (max-width: 600px) {
   .start-ranking-trigger {
     top: 12px;

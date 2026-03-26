@@ -69,6 +69,9 @@
 - [gameplay-beta-plan.md](./gameplay-beta-plan.md)  
   베타에서 재미와 플레이성을 먼저 살리기 위한 우선순위와 첫 구현 방향을 정리한 실행 계획 문서.
 
+- [account-progression-plan.md](./account-progression-plan.md)  
+  12턴 완주 뒤에도 계정 메타를 유지하고 `계정 레벨 / 최고 기록 / 영구 보너스`를 다음 회차에 넘기는 실행 계획 문서.
+
 - [npc-romance-implementation-plan.md](./npc-romance-implementation-plan.md)  
   기존 연락처 -> 약속 -> 데이트/집 초대 루프를 정리한 로맨스 구현 기준 문서.
 

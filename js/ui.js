@@ -101,15 +101,23 @@ function cacheUi() {
   ui.jobMiniGameProgress = document.getElementById("job-minigame-progress");
   ui.moneyEffect = document.getElementById("money-effect");
   ui.startScreen = document.getElementById("start-screen");
+  ui.startCard = ui.startScreen?.querySelector(".start-card") || null;
   ui.startKicker = ui.startScreen?.querySelector(".start-kicker") || null;
   ui.startTitle = ui.startScreen?.querySelector(".start-title") || null;
   ui.startSub = ui.startScreen?.querySelector(".start-sub") || null;
   ui.startBody = ui.startScreen?.querySelector(".start-body") || null;
   ui.startHighlights = ui.startScreen?.querySelector(".start-highlights") || null;
+  ui.startLoginSection = ui.startScreen?.querySelector(".start-login-section") || null;
   ui.nameInput = document.getElementById("name-input");
   ui.continueButton = document.getElementById("continue-button");
   ui.rankingPreviewButton = document.getElementById("ranking-preview-button");
   ui.startButton = document.getElementById("start-button");
+  ui.startGoogleLoginButton = document.getElementById("start-google-login-button");
+  ui.startGoogleLoginLabel = document.getElementById("start-google-login-label");
+  ui.startEmailLoginButton = document.getElementById("start-email-login-button");
+  ui.startGuestButton = document.getElementById("start-guest-start-button");
+  ui.startLoginStatus = document.getElementById("start-login-status");
+  ui.startGuestNote = document.getElementById("start-guest-note");
   ui.startRankingPanels = Array.from(document.querySelectorAll("[data-start-ranking-panel]"));
   ui.startOriginPanel = document.getElementById("start-origin-panel");
   ui.spoonDrawOverlay = document.getElementById("spoon-draw-overlay");
@@ -131,6 +139,19 @@ function cacheUi() {
   ui.startOriginName = document.getElementById("start-origin-name");
   ui.startOriginDesc = document.getElementById("start-origin-desc");
   ui.startOriginMeta = document.getElementById("start-origin-meta");
+  ui.authModal = document.getElementById("auth-modal");
+  ui.authModalCloseButton = document.getElementById("auth-modal-close-button");
+  ui.authTabLoginButton = document.getElementById("auth-tab-login-button");
+  ui.authTabSignupButton = document.getElementById("auth-tab-signup-button");
+  ui.authModalTitle = document.getElementById("auth-modal-title");
+  ui.authModalSubtitle = document.getElementById("auth-modal-subtitle");
+  ui.authModalForm = document.getElementById("auth-modal-form");
+  ui.authEmailInput = document.getElementById("auth-email-input");
+  ui.authPasswordInput = document.getElementById("auth-password-input");
+  ui.authConfirmWrap = document.getElementById("auth-confirm-wrap");
+  ui.authConfirmInput = document.getElementById("auth-confirm-input");
+  ui.authModalMessage = document.getElementById("auth-modal-message");
+  ui.authModalSubmitButton = document.getElementById("auth-modal-submit-button");
   ui.rankingSubtitle = document.querySelector(".ranking-subtitle");
   ui.phonePanel = document.getElementById("phone-panel");
   ui.phoneStage = document.getElementById("phone-stage");
@@ -173,7 +194,11 @@ function cacheUi() {
       if (typeof stopRankingRealtimeSubscription === "function") {
         stopRankingRealtimeSubscription();
       }
-      if (typeof restartToTitle === "function") restartToTitle();
+      if (typeof beginNextAccountCycle === "function") {
+        beginNextAccountCycle();
+      } else if (typeof restartToTitle === "function") {
+        restartToTitle();
+      }
       closeRankingScreen();
     });
   }
@@ -347,7 +372,7 @@ function setupStartScreenLegacy() {
   }
   ui.nameInput.placeholder = "\ub2c9\ub124\uc784";
   ui.nameInput.autocomplete = "off";
-  ui.startButton.textContent = "새로하기";
+  ui.startButton.textContent = "새 회차 시작";
   if (ui.continueButton) {
     ui.continueButton.textContent = "이어하기";
     ui.continueButton.hidden = true;
@@ -364,12 +389,8 @@ function setStartScreenSaveState(_hasSave = false) {
   }
 
   if (ui.startButton) {
-    ui.startButton.textContent = "새로하기";
+    ui.startButton.textContent = "새 회차 시작";
   }
-}
-
-function formatStartScreenCash(amount = 0) {
-  return `${Math.max(0, Math.round(Number(amount) || 0)).toLocaleString("ko-KR")}원`;
 }
 
 function buildStartRankingEntries() {
@@ -473,6 +494,9 @@ function renderStartScreenDrawState(hasSave = false) {
     : { screenMode: "intro", phase: "idle", previewTierId: "", resultTierId: "" };
   const screenMode = drawState.screenMode === "origin" ? "origin" : "intro";
   const inOriginScreen = screenMode === "origin";
+  const canEditNickname = typeof canEditStartNickname === "function"
+    ? canEditStartNickname()
+    : false;
   const enteredName = getStartScreenEnteredName();
   const hasEnteredName = enteredName.length > 0;
   const activeTierId = drawState.resultTierId || drawState.previewTierId || "";
@@ -515,7 +539,7 @@ function renderStartScreenDrawState(hasSave = false) {
   if (ui.startSub) ui.startSub.hidden = inOriginScreen;
   if (ui.startBody) ui.startBody.hidden = inOriginScreen;
   if (ui.startHighlights) ui.startHighlights.hidden = inOriginScreen;
-  if (ui.nameInput) ui.nameInput.hidden = inOriginScreen;
+  if (ui.nameInput) ui.nameInput.hidden = inOriginScreen || !canEditNickname;
 
   if (ui.startOriginMachine) {
     ui.startOriginMachine.dataset.phase = drawState.phase || "idle";
@@ -583,14 +607,18 @@ function renderStartScreenDrawState(hasSave = false) {
   });
 
   if (ui.startButton) {
-    ui.startButton.hidden = false;
+    ui.startButton.hidden = inOriginScreen || !canEditNickname;
     ui.startButton.disabled = !hasEnteredName;
-    ui.startButton.textContent = "새로하기";
+    ui.startButton.textContent = "새 회차 시작";
   }
 
   if (ui.continueButton) {
     ui.continueButton.textContent = "이어하기";
     ui.continueButton.hidden = !hasSave;
+  }
+
+  if (typeof syncStartAuthUi === "function") {
+    syncStartAuthUi();
   }
 }
 
@@ -919,8 +947,20 @@ function showStartScreen(hasSave = false) {
       return;
     }
 
-    ui.nameInput.focus();
-    ui.nameInput.select();
+    if (ui.nameInput && !ui.nameInput.hidden && !ui.nameInput.disabled) {
+      ui.nameInput.focus();
+      ui.nameInput.select();
+      return;
+    }
+
+    if (ui.startGuestButton && !ui.startGuestButton.hidden && !ui.startGuestButton.disabled) {
+      ui.startGuestButton.focus();
+      return;
+    }
+
+    if (ui.startGoogleLoginButton && !ui.startGoogleLoginButton.disabled) {
+      ui.startGoogleLoginButton.focus();
+    }
   });
 }
 
@@ -4196,8 +4236,8 @@ function renderEndingScene() {
   }
 
   createChoiceButton({
-    title: "\ucc98\uc74c\ubd80\ud130 \ub2e4\uc2dc \ud558\uae30",
-    onClick: restartToTitle,
+    title: "\ub2e4\uc74c \ud68c\ucc28 \uc2dc\uc791",
+    onClick: typeof beginNextAccountCycle === "function" ? beginNextAccountCycle : restartToTitle,
   });
 }
 
@@ -4431,6 +4471,7 @@ function showRankingScreen(myEntry, allEntries, options = {}) {
   }
 
   if (ui.rankingRestartBtn) {
+    ui.rankingRestartBtn.textContent = `${MAX_DAYS}턴 다시 시작`;
     ui.rankingRestartBtn.hidden = previewMode;
   }
 
@@ -4622,6 +4663,29 @@ function showSettlementScreen(summary, onDone) {
     const rankLabel = String(summary?.rank?.label || "D");
     const rankTitle = escapeHtml(String(summary?.rank?.title || ""));
     const rankClass = `settlement-rank--${rankLabel.toLowerCase()}`;
+    const accountProgress = summary?.accountProgress || null;
+    const nextCashBonus = Math.max(0, Math.round(Number(accountProgress?.bonuses?.startingCashBonus) || 0));
+    const nextHappinessBonus = Math.max(0, Math.round(Number(accountProgress?.bonuses?.startHappinessBonus) || 0));
+    const accountProgressNoteParts = [];
+    if (accountProgress?.levelGained > 0) {
+      accountProgressNoteParts.push(`완주 보상 +${accountProgress.levelGained}LV`);
+    }
+    if (nextCashBonus > 0) {
+      accountProgressNoteParts.push(`다음 현금 +${formatMoney(nextCashBonus)}`);
+    }
+    if (nextHappinessBonus > 0) {
+      accountProgressNoteParts.push(`행복 +${nextHappinessBonus}`);
+    }
+    const accountProgressMarkup = accountProgress
+      ? `
+        <div class="settlement-divider"></div>
+        <div class="settlement-account-progress">
+          <span class="settlement-account-label">계정</span>
+          <span class="settlement-account-value">${escapeHtml(String(accountProgress.accountLevel || 0))}LV</span>
+          <span class="settlement-account-note">${escapeHtml(accountProgressNoteParts.join(" · ") || "계정 레벨 유지")}</span>
+        </div>
+      `
+      : "";
 
     ui.settlementRankArea.innerHTML = `
       <div class="settlement-happiness">
@@ -4635,6 +4699,7 @@ function showSettlementScreen(summary, onDone) {
         <span class="settlement-rank-grade">${escapeHtml(rankLabel)}</span>
         <span class="settlement-rank-title">${rankTitle}</span>
       </div>
+      ${accountProgressMarkup}
     `;
     ui.settlementRankArea.classList.add("is-visible");
   }, rankDelay);
@@ -4731,7 +4796,7 @@ function setupTitleScreenUi() {
 
   ui.nameInput.placeholder = "\ub2c9\ub124\uc784";
   ui.nameInput.autocomplete = "off";
-  ui.startButton.textContent = "\ucd9c\uc0dd \ud328\ud0a4\uc9c0 \ubf51\uae30";
+  ui.startButton.textContent = "\uc0c8 \ud68c\ucc28 \uc2dc\uc791";
   if (ui.continueButton) {
     ui.continueButton.textContent = "\uc774\uc5b4\ud558\uae30";
     ui.continueButton.hidden = true;

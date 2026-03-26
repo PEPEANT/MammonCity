@@ -1,4 +1,4 @@
-// Keep logic.js focused on orchestration. Domain rules belong in
+﻿// Keep logic.js focused on orchestration. Domain rules belong in
 // js/systems/* or js/apps/* per docs/design/logic-split-plan.md.
 
 const DEFAULT_DAY_DEV_PRESETS = [
@@ -2147,14 +2147,19 @@ function createInitialState() {
       ? createDefaultDisCommunityState()
       : {
           selectedPostId: "",
+          editingPostId: "",
+          verifiedGuestPostId: "",
+          tab: "all",
           draft: {
             author: "",
             title: "",
             content: "",
+            guestPin: "",
           },
           commentDraft: {
             author: "",
             content: "",
+            guestPin: "",
           },
         },
     disGambleDrafts: {
@@ -3050,20 +3055,23 @@ function hydrateState(rawState = {}) {
           ? createDefaultDisCommunityState()
           : {
               selectedPostId: "",
-              draft: { author: "", title: "", content: "" },
-              commentDraft: { author: "", content: "" },
+              editingPostId: "",
+              verifiedGuestPostId: "",
+              tab: "all",
+              draft: { author: "", title: "", content: "", guestPin: "" },
+              commentDraft: { author: "", content: "", guestPin: "" },
             })),
         ...rawState.disCommunity,
         draft: {
           ...((typeof createDefaultDisCommunityState === "function"
             ? createDefaultDisCommunityState().draft
-            : { author: "", title: "", content: "" })),
+            : { author: "", title: "", content: "", guestPin: "" })),
           ...(rawState.disCommunity.draft || {}),
         },
         commentDraft: {
           ...((typeof createDefaultDisCommunityState === "function"
             ? createDefaultDisCommunityState().commentDraft
-            : { author: "", content: "" })),
+            : { author: "", content: "", guestPin: "" })),
           ...(rawState.disCommunity.commentDraft || {}),
         },
       }
@@ -3071,8 +3079,11 @@ function hydrateState(rawState = {}) {
       ? createDefaultDisCommunityState()
       : {
           selectedPostId: "",
-          draft: { author: "", title: "", content: "" },
-          commentDraft: { author: "", content: "" },
+          editingPostId: "",
+          verifiedGuestPostId: "",
+          tab: "all",
+          draft: { author: "", title: "", content: "", guestPin: "" },
+          commentDraft: { author: "", content: "", guestPin: "" },
         });
   mergedState.disGambleDrafts = rawState.disGambleDrafts && typeof rawState.disGambleDrafts === "object"
     ? {
@@ -7406,6 +7417,19 @@ function handlePhoneScreenInput(event) {
       return;
     }
 
+    if (inputKey === "guest-pin") {
+      const normalizedGuestPin = typeof normalizeDisCommunityGuestPin === "function"
+        ? normalizeDisCommunityGuestPin(nextValue)
+        : String(nextValue || "").replace(/\D+/g, "").slice(0, 4);
+      if (normalizedGuestPin !== nextValue) {
+        disCommunityInput.value = normalizedGuestPin;
+      }
+      if (typeof setDisCommunityDraftField === "function") {
+        setDisCommunityDraftField("guestPin", normalizedGuestPin, state);
+      }
+      return;
+    }
+
     if (inputKey === "comment-author") {
       if (typeof setDisCommunityCommentDraftField === "function") {
         setDisCommunityCommentDraftField("author", nextValue, state);
@@ -7416,6 +7440,19 @@ function handlePhoneScreenInput(event) {
     if (inputKey === "comment-content") {
       if (typeof setDisCommunityCommentDraftField === "function") {
         setDisCommunityCommentDraftField("content", nextValue, state);
+      }
+      return;
+    }
+
+    if (inputKey === "comment-guest-pin") {
+      const normalizedGuestPin = typeof normalizeDisCommunityGuestPin === "function"
+        ? normalizeDisCommunityGuestPin(nextValue)
+        : String(nextValue || "").replace(/\D+/g, "").slice(0, 4);
+      if (normalizedGuestPin !== nextValue) {
+        disCommunityInput.value = normalizedGuestPin;
+      }
+      if (typeof setDisCommunityCommentDraftField === "function") {
+        setDisCommunityCommentDraftField("guestPin", normalizedGuestPin, state);
       }
       return;
     }
@@ -8052,7 +8089,152 @@ function openDisCommunityRoute(route, { expandStage = false } = {}) {
   renderGame();
 }
 
+function openDisCommunityWriteStage({ expandStage = false, preserveAuthor = true } = {}) {
+  if (typeof resetDisCommunityComposer === "function") {
+    resetDisCommunityComposer(state, { preserveAuthor });
+  }
+
+  openDisCommunityRoute("dis/singularity-write", { expandStage });
+}
+
+function promptDisCommunityGuestPin(message = "") {
+  if (typeof window === "undefined" || typeof window.prompt !== "function") {
+    return "";
+  }
+
+  const response = window.prompt(message, "");
+  if (response === null) {
+    return null;
+  }
+
+  return typeof normalizeDisCommunityGuestPin === "function"
+    ? normalizeDisCommunityGuestPin(response)
+    : String(response || "").replace(/\D+/g, "").slice(0, 4);
+}
+
+function getDisCommunityPostFailureText(reason = "", fallbackText = "Diggle action failed.") {
+  if (reason === "empty") {
+    return "\uC81C\uBAA9\uACFC \uB0B4\uC6A9\uC744 \uC785\uB825\uD574\uC57C \uD569\uB2C8\uB2E4.";
+  }
+
+  if (reason === "pin-invalid") {
+    return "\uAC8C\uC2A4\uD2B8 \uBE44\uBC00\uBC88\uD638 4\uC790\uB9AC\uB97C \uC785\uB825\uD574\uC57C \uD569\uB2C8\uB2E4.";
+  }
+
+  if (reason === "pin-mismatch") {
+    return "\uBE44\uBC00\uBC88\uD638\uAC00 \uC77C\uCE58\uD558\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4.";
+  }
+
+  if (reason === "forbidden") {
+    return "\uBCF8\uC778 \uAC8C\uC2DC\uAE00\uB9CC \uC218\uC815 \uB610\uB294 \uC0AD\uC81C\uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4.";
+  }
+
+  if (reason === "missing") {
+    return "\uAC8C\uC2DC\uAE00\uC744 \uCC3E\uC744 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.";
+  }
+
+  return fallbackText;
+}
+
+function startDisCommunityEditFromPhone(actionTarget) {
+  const postId = String(actionTarget?.dataset.postId || "").trim();
+  const post = typeof getDisCommunityPostById === "function"
+    ? getDisCommunityPostById(postId)
+    : null;
+
+  if (!post || typeof beginDisCommunityPostEdit !== "function") {
+    state.headline = {
+      badge: "Diggle",
+      text: getDisCommunityPostFailureText("missing"),
+    };
+    renderGame();
+    return;
+  }
+
+  let guestPin = "";
+  if (typeof isDisCommunityGuestOwnedPost === "function" && isDisCommunityGuestOwnedPost(post)) {
+    guestPin = promptDisCommunityGuestPin("\uAC8C\uC2A4\uD2B8 \uAE00 \uC218\uC815\uC744 \uC704\uD55C \uBE44\uBC00\uBC88\uD638 4\uC790\uB9AC\uB97C \uC785\uB825\uD558\uC138\uC694.");
+    if (guestPin === null) {
+      return;
+    }
+  }
+
+  const result = beginDisCommunityPostEdit(postId, state, { guestPin });
+  if (!result?.ok) {
+    state.headline = {
+      badge: "Diggle",
+      text: getDisCommunityPostFailureText(result?.reason, "\uAE00 \uC218\uC815 \uC900\uBE44\uB97C \uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."),
+    };
+    renderGame();
+    return;
+  }
+
+  openDisCommunityRoute("dis/singularity-write", { expandStage: true });
+}
+
+function deleteDisCommunityPostFromPhone(actionTarget) {
+  const postId = String(actionTarget?.dataset.postId || "").trim();
+  const post = typeof getDisCommunityPostById === "function"
+    ? getDisCommunityPostById(postId)
+    : null;
+
+  if (!post || typeof deleteDisCommunityPost !== "function") {
+    state.headline = {
+      badge: "Diggle",
+      text: getDisCommunityPostFailureText("missing"),
+    };
+    renderGame();
+    return;
+  }
+
+  let guestPin = "";
+  if (typeof isDisCommunityGuestOwnedPost === "function" && isDisCommunityGuestOwnedPost(post)) {
+    guestPin = promptDisCommunityGuestPin("\uAC8C\uC2A4\uD2B8 \uAE00 \uC0AD\uC81C\uB97C \uC704\uD55C \uBE44\uBC00\uBC88\uD638 4\uC790\uB9AC\uB97C \uC785\uB825\uD558\uC138\uC694.");
+    if (guestPin === null) {
+      return;
+    }
+  }
+
+  if (typeof window !== "undefined" && typeof window.confirm === "function") {
+    const confirmed = window.confirm("\uC815\uB9D0 \uC774 \uAE00\uC744 \uC0AD\uC81C\uD560\uAE4C\uC694?");
+    if (!confirmed) {
+      return;
+    }
+  }
+
+  Promise.resolve(deleteDisCommunityPost(postId, state, { guestPin }))
+    .then((result) => {
+      if (!result?.ok) {
+        state.headline = {
+          badge: "Diggle",
+          text: getDisCommunityPostFailureText(result?.reason, "\uAE00 \uC0AD\uC81C\uB97C \uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."),
+        };
+        renderGame();
+        return;
+      }
+
+      state.headline = {
+        badge: "Diggle",
+        text: result.online
+          ? "\uAC8C\uC2DC\uAE00\uC744 \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4."
+          : "\uC624\uD504\uB77C\uC778 \uC0C1\uD0DC\uC5D0\uC11C \uB85C\uCEEC \uAE00\uC744 \uC0AD\uC81C\uD588\uC2B5\uB2C8\uB2E4.",
+      };
+      openDisCommunityRoute("dis/singularity", { expandStage: true });
+    })
+    .catch(() => {
+      state.headline = {
+        badge: "Diggle",
+        text: "\uAE00 \uC0AD\uC81C \uC911 \uC624\uB958\uAC00 \uBC1C\uC0DD\uD588\uC2B5\uB2C8\uB2E4.",
+      };
+      renderGame();
+    });
+}
+
 function openDisCommunityPost(postId, { expandStage = false } = {}) {
+  if (typeof resetDisCommunityComposer === "function") {
+    resetDisCommunityComposer(state, { preserveAuthor: true });
+  }
+
   if (typeof setDisCommunitySelectedPostId === "function") {
     setDisCommunitySelectedPostId(postId, state);
   }
@@ -8069,16 +8251,21 @@ function submitDisCommunityPostFromPhone(actionTarget) {
   const authorInput = scopedRoot?.querySelector('[data-dis-community-input="author"]');
   const titleInput = scopedRoot?.querySelector('[data-dis-community-input="title"]');
   const contentInput = scopedRoot?.querySelector('[data-dis-community-input="content"]');
+  const guestPinInput = scopedRoot?.querySelector('[data-dis-community-input="guest-pin"]');
   const payload = {
     author: String(authorInput?.value ?? state.disCommunity?.draft?.author ?? "").trim(),
     title: String(titleInput?.value ?? state.disCommunity?.draft?.title ?? "").trim(),
     content: String(contentInput?.value ?? state.disCommunity?.draft?.content ?? "").trim(),
+    guestPin: typeof normalizeDisCommunityGuestPin === "function"
+      ? normalizeDisCommunityGuestPin(guestPinInput?.value ?? state.disCommunity?.draft?.guestPin ?? "")
+      : String(guestPinInput?.value ?? state.disCommunity?.draft?.guestPin ?? "").replace(/\D+/g, "").slice(0, 4),
   };
 
   if (typeof setDisCommunityDraftField === "function") {
     setDisCommunityDraftField("author", payload.author, state);
     setDisCommunityDraftField("title", payload.title, state);
     setDisCommunityDraftField("content", payload.content, state);
+    setDisCommunityDraftField("guestPin", payload.guestPin, state);
   }
 
   if (typeof submitDisCommunityPost !== "function") {
@@ -8089,7 +8276,7 @@ function submitDisCommunityPostFromPhone(actionTarget) {
     if (!result?.ok) {
       state.headline = {
         badge: "Diggle",
-        text: "제목과 내용을 입력해야 한다.",
+        text: getDisCommunityPostFailureText(result?.reason),
       };
       renderGame();
       return;
@@ -8102,7 +8289,13 @@ function submitDisCommunityPostFromPhone(actionTarget) {
 
     state.headline = {
       badge: "Diggle",
-      text: result.online ? "실시간 글이 갤러리에 올라갔다." : "연결이 없어 로컬 미리보기로 저장했다.",
+      text: result?.mode === "edit"
+        ? (result.online
+          ? "글 수정이 반영됐다."
+          : "오프라인 상태로 로컬 수정이 적용됐다.")
+        : (result.online
+          ? "실시간 글이 갤러리에 올라갔다."
+          : "연결이 없어 로컬 미리보기로 저장했다."),
     };
     openDisCommunityRoute("dis/singularity-read", { expandStage: true });
   });
@@ -8113,14 +8306,19 @@ function submitDisCommunityCommentFromPhone(actionTarget) {
   const scopedRoot = getDisCommunityScope(actionTarget);
   const authorInput = scopedRoot?.querySelector('[data-dis-community-input="comment-author"]');
   const contentInput = scopedRoot?.querySelector('[data-dis-community-input="comment-content"]');
+  const guestPinInput = scopedRoot?.querySelector('[data-dis-community-input="comment-guest-pin"]');
   const payload = {
     author: String(authorInput?.value ?? state.disCommunity?.commentDraft?.author ?? "").trim(),
     content: String(contentInput?.value ?? state.disCommunity?.commentDraft?.content ?? "").trim(),
+    guestPin: typeof normalizeDisCommunityGuestPin === "function"
+      ? normalizeDisCommunityGuestPin(guestPinInput?.value ?? state.disCommunity?.commentDraft?.guestPin ?? "")
+      : String(guestPinInput?.value ?? state.disCommunity?.commentDraft?.guestPin ?? "").replace(/\D+/g, "").slice(0, 4),
   };
 
   if (typeof setDisCommunityCommentDraftField === "function") {
     setDisCommunityCommentDraftField("author", payload.author, state);
     setDisCommunityCommentDraftField("content", payload.content, state);
+    setDisCommunityCommentDraftField("guestPin", payload.guestPin, state);
   }
 
   if (typeof submitDisCommunityComment !== "function") {
@@ -8131,7 +8329,7 @@ function submitDisCommunityCommentFromPhone(actionTarget) {
     if (!result?.ok) {
       state.headline = {
         badge: "Diggle",
-        text: "댓글 내용을 입력해야 한다.",
+        text: getDisCommunityPostFailureText(result?.reason, "댓글 내용을 입력해야 한다."),
       };
       renderGame();
       return;
@@ -8139,6 +8337,7 @@ function submitDisCommunityCommentFromPhone(actionTarget) {
 
     if (typeof setDisCommunityCommentDraftField === "function") {
       setDisCommunityCommentDraftField("content", "", state);
+      setDisCommunityCommentDraftField("guestPin", "", state);
     }
 
     state.headline = {
@@ -11855,12 +12054,15 @@ function handlePhoneScreenClick(event) {
   }
 
   if (phoneAction === "dis-open-community-stage") {
+    if (typeof resetDisCommunityComposer === "function") {
+      resetDisCommunityComposer(state, { preserveAuthor: true });
+    }
     openDisCommunityRoute("dis/singularity", { expandStage: true });
     return;
   }
 
   if (phoneAction === "dis-open-community-write-stage") {
-    openDisCommunityRoute("dis/singularity-write", { expandStage: true });
+    openDisCommunityWriteStage({ expandStage: true });
     return;
   }
 
@@ -11884,9 +12086,22 @@ function handlePhoneScreenClick(event) {
     return;
   }
 
+  if (phoneAction === "dis-edit-community-post") {
+    startDisCommunityEditFromPhone(actionTarget);
+    return;
+  }
+
+  if (phoneAction === "dis-delete-community-post") {
+    deleteDisCommunityPostFromPhone(actionTarget);
+    return;
+  }
+
   if (phoneAction === "dis-switch-community-tab") {
     if (typeof setDisCommunityTab === "function") {
       setDisCommunityTab(actionTarget.dataset.tab);
+    }
+    if (typeof resetDisCommunityComposer === "function") {
+      resetDisCommunityComposer(state, { preserveAuthor: true });
     }
     openDisCommunityRoute("dis/singularity", { expandStage: true });
     return;
