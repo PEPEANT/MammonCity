@@ -28,15 +28,29 @@ function copyEntry(relativePath) {
 
   const stat = fs.statSync(sourcePath);
   if (stat.isDirectory()) {
-    fs.cpSync(sourcePath, targetPath, {
-      recursive: true,
-      force: true,
-    });
+    copyDirectory(sourcePath, targetPath);
     return;
   }
 
   fs.mkdirSync(path.dirname(targetPath), { recursive: true });
   fs.copyFileSync(sourcePath, targetPath);
+}
+
+function copyDirectory(sourceDir, targetDir) {
+  fs.mkdirSync(targetDir, { recursive: true });
+  fs.readdirSync(sourceDir, { withFileTypes: true }).forEach((entry) => {
+    const sourcePath = path.join(sourceDir, entry.name);
+    const targetPath = path.join(targetDir, entry.name);
+
+    if (entry.isDirectory()) {
+      copyDirectory(sourcePath, targetPath);
+      return;
+    }
+
+    if (entry.isFile()) {
+      fs.copyFileSync(sourcePath, targetPath);
+    }
+  });
 }
 
 ensureCleanDir(distRoot);

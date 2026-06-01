@@ -496,7 +496,7 @@ function renderStartScreenDrawState(hasSave = false) {
   const inOriginScreen = screenMode === "origin";
   const canEditNickname = typeof canEditStartNickname === "function"
     ? canEditStartNickname()
-    : false;
+    : true;
   const enteredName = getStartScreenEnteredName();
   const hasEnteredName = enteredName.length > 0;
   const activeTierId = drawState.resultTierId || drawState.previewTierId || "";
@@ -608,8 +608,8 @@ function renderStartScreenDrawState(hasSave = false) {
 
   if (ui.startButton) {
     ui.startButton.hidden = inOriginScreen || !canEditNickname;
-    ui.startButton.disabled = !hasEnteredName;
-    ui.startButton.textContent = "새 회차 시작";
+    ui.startButton.disabled = false;
+    ui.startButton.textContent = hasEnteredName ? "새 회차 시작" : "게스트로 시작";
   }
 
   if (ui.continueButton) {

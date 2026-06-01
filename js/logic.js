@@ -7194,6 +7194,7 @@ function runAction(action) {
 function bindStaticEvents() {
   ui.continueButton?.addEventListener("click", continueSavedGame);
   ui.rankingPreviewButton?.addEventListener("click", openTitleRankingPreview);
+  ui.startGuestButton?.addEventListener("click", handleGuestStartAction);
   ui.startButton.addEventListener("click", handleStartScreenPrimaryAction);
   ui.nameInput?.addEventListener("input", () => {
     syncStartScreenDrawUi();
@@ -7321,14 +7322,20 @@ function beginStartScreenDraw() {
 }
 
 function handleStartScreenPrimaryAction() {
-  const playerName = String(ui.nameInput?.value || "").trim();
-  if (!playerName) {
-    ui.nameInput?.focus();
-    ui.nameInput?.select();
-    return;
+  if (ui.nameInput && !String(ui.nameInput.value || "").trim()) {
+    ui.nameInput.value = "게스트";
+    syncStartScreenDrawUi();
   }
 
   beginStartScreenDraw();
+}
+
+function handleGuestStartAction() {
+  if (ui.nameInput && !String(ui.nameInput.value || "").trim()) {
+    ui.nameInput.value = "게스트";
+  }
+
+  handleStartScreenPrimaryAction();
 }
 
 async function openTitleRankingPreview() {
